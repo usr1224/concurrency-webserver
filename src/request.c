@@ -1,5 +1,8 @@
 #include "io_helper.h"
 #include "request.h"
+#include <string.h>
+#include <stdio.h>
+
 
 //
 // Some of this code stolen from Bryant/O'Halloran
@@ -7,6 +10,7 @@
 //
 
 #define MAXBUF (8192)
+#define MAXLINE 1024
 
 void request_error(int fd, char *cause, char *errnum, char *shortmsg, char *longmsg) {
     char buf[MAXBUF], body[MAXBUF];
@@ -177,4 +181,28 @@ void request_handle(int fd) {
 	}
 	request_serve_dynamic(fd, filename, cgiargs);
     }
+}
+
+int parse_request(int conn_fd, char* filename) {
+    char buffer[MAXLINE];
+    char method[MAXLINE];
+    char uri[MAXLINE];
+    char version[MAXLINE];
+
+    if (read(conn_fd, buffer, MAXLINE) < 0) {
+        perror("Error reading request");
+        return -1;
+    }
+
+    sscanf(buffer, "%s %s %s", method, uri, version);
+
+    if (strcmp(method, "GET") != 0) {
+        printf("Method not supported: %s\n", method);
+        return -1;
+    }
+	
+    strcpy(filename, ".");
+    strcat(filename, uri);
+
+    return 0;
 }
