@@ -5,8 +5,15 @@
 #include "request.h"
 #include "io_helper.h"
 
+#define MAXLINE 1024
+
+typedef struct {
+	int conn_fd;
+	off_t file_size;
+} RequestInfo;
+
 char default_root[] = ".";
-int* buffer = NULL;
+RequestInfo* buffer = NULL;
 int count = 0;
 int use_index = 0;
 int fill_index = 0;
@@ -15,11 +22,6 @@ char* scheduling_algorithm = "FIFO";
 pthread_cond_t empty = PTHREAD_COND_INITIALIZER;
 pthread_cond_t fill = PTHREAD_COND_INITIALIZER;
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-
-typedef struct {
-    int conn_fd;
-    off_t file_size;
-} RequestInfo;
 
 void put_buffer(RequestInfo request) {
     buffer[fill_index] = request;
